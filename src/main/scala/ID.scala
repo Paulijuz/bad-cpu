@@ -21,12 +21,26 @@ class InstructionDecode extends MultiIOModule {
       /**
         * TODO: Your code here.
         */
+      val PC = Input(UInt())
+      val instruction = Input(new Instruction)
+
+      val registerA = Output(SInt())
+      val registerB = Output(SInt())
+      val imm = Output(SInt())
+
+      val ALUOp = Output(UInt(4.W))
+      val immType = Output(UInt())
+
+      val regWriteAddress = Output(UInt())
+
+      val writeEnable = Input(Bool())
+      val writeAddress = Input(UInt())
+      val writeData = Input(SInt())
     }
   )
 
   val registers = Module(new Registers)
   val decoder   = Module(new Decoder).io
-
 
   /**
     * Setup. You should not change this code
@@ -39,11 +53,20 @@ class InstructionDecode extends MultiIOModule {
   /**
     * TODO: Your code here.
     */
-  registers.io.readAddress1 := 0.U
-  registers.io.readAddress2 := 0.U
-  registers.io.writeEnable  := false.B
-  registers.io.writeAddress := 0.U
-  registers.io.writeData    := 0.U
+  registers.io.readAddress1 := io.instruction.registerRs1
+  registers.io.readAddress2 := io.instruction.registerRs2
+  registers.io.writeEnable  := io.writeEnable
+  registers.io.writeAddress := io.writeAddress
+  registers.io.writeData    := io.writeData.asUInt()
 
-  decoder.instruction := 0.U.asTypeOf(new Instruction)
+  io.registerA := registers.io.readData1.asSInt()
+  io.registerB := registers.io.readData2.asSInt()
+  io.regWriteAddress := io.instruction.registerRd
+  io.imm := io.instruction.immediateIType
+
+  io.ALUOp := decoder.ALUop
+  io.immType := decoder.immType
+
+
+  decoder.instruction := io.instruction
 }

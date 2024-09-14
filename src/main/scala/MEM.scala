@@ -18,7 +18,11 @@ class MemoryFetch() extends MultiIOModule {
 
   val io = IO(
     new Bundle {
-    })
+      val writeData = Input(SInt())
+
+      val readData = Output(SInt())
+    }
+  )
 
 
   val DMEM = Module(new DMEM)
@@ -38,4 +42,6 @@ class MemoryFetch() extends MultiIOModule {
   DMEM.io.dataIn      := 0.U
   DMEM.io.dataAddress := 0.U
   DMEM.io.writeEnable := false.B
+
+  io.readData := io.writeData
 }

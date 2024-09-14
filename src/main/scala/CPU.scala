@@ -21,16 +21,16 @@ class CPU extends MultiIOModule {
   /**
     You need to create the classes for these yourself
     */
-  // val IFBarrier  = Module(new IFBarrier).io
-  // val IDBarrier  = Module(new IDBarrier).io
-  // val EXBarrier  = Module(new EXBarrier).io
-  // val MEMBarrier = Module(new MEMBarrier).io
+  val IFBarrier  = Module(new IFBarrier).io
+  val IDBarrier  = Module(new IDBarrier).io
+  val EXBarrier  = Module(new EXBarrier).io
+  val MEMBarrier = Module(new MEMBarrier).io
 
   val ID  = Module(new InstructionDecode)
   val IF  = Module(new InstructionFetch)
-  // val EX  = Module(new Execute)
+  val EX  = Module(new Execute)
   val MEM = Module(new MemoryFetch)
-  // val WB  = Module(new Execute) (You may not need this one?)
+  // val WB  = Module(new Execute) (You may not need this one?) 
 
 
   /**
@@ -54,4 +54,33 @@ class CPU extends MultiIOModule {
   /**
     TODO: Your code here
     */
+
+  IFBarrier.PCIn := IF.io.PC
+  IFBarrier.instructionIn := IF.io.instruction
+
+  ID.io.PC := IFBarrier.PCOut
+  ID.io.instruction := IFBarrier.instructionOut
+
+  ID.io.writeEnable := MEMBarrier.regWriteEnableOut
+  ID.io.writeData := MEMBarrier.readDataOut
+  ID.io.writeAddress := MEMBarrier.regWriteAddressOut
+
+  IDBarrier.registerAIn := ID.io.registerA
+  IDBarrier.registerBIn := ID.io.registerB
+  IDBarrier.ALUOpIn := ID.io.ALUOp
+  IDBarrier.regWriteAddressIn := ID.io.regWriteAddress
+  IDBarrier.immIn := ID.io.imm
+
+  // EX.io.op1 := IDBarrier.registerAOut
+  EX.io.op2 := IDBarrier.registerAOut
+  EX.io.op1 := IDBarrier.immOut
+  EX.io.aluOp := IDBarrier.ALUOpOut
+
+  EXBarrier.ALUResultIn := EX.io.aluResult
+  EXBarrier.regWriteAddressIn := IDBarrier.regWriteAddressOut
+
+  MEM.io.writeData := EXBarrier.ALUResultOut
+  
+  MEMBarrier.readDataIn := MEM.io.readData
+  MEMBarrier.regWriteAddressIn := EXBarrier.regWriteAddressOut
 }
