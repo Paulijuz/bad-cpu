@@ -5,22 +5,23 @@ import chisel3.experimental.MultiIOModule
 class MEMBarrier extends MultiIOModule {
     val io = IO(
         new Bundle {
-            val readDataIn = Input(SInt())
+            val dataIn = Input(SInt())
+            val regWriteEnableIn = Input(Bool())
             val regWriteAddressIn = Input(UInt())
 
-            val readDataOut = Output(SInt())
+            val dataOut = Output(SInt())
             val regWriteEnableOut = Output(Bool())
             val regWriteAddressOut = Output(UInt())
         }
     )
 
-    val readDataRegister = RegInit(0.S)
     val regWriteAddressRegister = RegInit(0.U)
+    val regWriteEnableRegister = RegInit(false.B)
 
-    readDataRegister := io.readDataIn
     regWriteAddressRegister := io.regWriteAddressIn
+    regWriteEnableRegister := io.regWriteEnableIn
 
-    io.readDataOut := readDataRegister
-    io.regWriteEnableOut := true.B
+    io.dataOut := io.dataIn
+    io.regWriteEnableOut := regWriteEnableRegister
     io.regWriteAddressOut := regWriteAddressRegister
 }

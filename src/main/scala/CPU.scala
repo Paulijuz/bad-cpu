@@ -62,25 +62,35 @@ class CPU extends MultiIOModule {
   ID.io.instruction := IFBarrier.instructionOut
 
   ID.io.writeEnable := MEMBarrier.regWriteEnableOut
-  ID.io.writeData := MEMBarrier.readDataOut
+  ID.io.writeData := MEMBarrier.dataOut
   ID.io.writeAddress := MEMBarrier.regWriteAddressOut
 
-  IDBarrier.registerAIn := ID.io.registerA
-  IDBarrier.registerBIn := ID.io.registerB
+  IDBarrier.operand1In := ID.io.operand1
+  IDBarrier.operand2In := ID.io.operand2
   IDBarrier.ALUOpIn := ID.io.ALUOp
   IDBarrier.regWriteAddressIn := ID.io.regWriteAddress
-  IDBarrier.immIn := ID.io.imm
+  IDBarrier.memWriteEnableIn := ID.io.memWriteEnable
+  IDBarrier.memReadEnableIn := ID.io.memReadEnable
+  IDBarrier.memInputDataIn := ID.io.memInputData
+  IDBarrier.regWriteEnableIn := ID.io.regWriteEnable
 
-  // EX.io.op1 := IDBarrier.registerAOut
-  EX.io.op2 := IDBarrier.registerAOut
-  EX.io.op1 := IDBarrier.immOut
+  EX.io.op1 := IDBarrier.operand1Out
+  EX.io.op2 := IDBarrier.operand2Out
   EX.io.aluOp := IDBarrier.ALUOpOut
 
   EXBarrier.ALUResultIn := EX.io.aluResult
   EXBarrier.regWriteAddressIn := IDBarrier.regWriteAddressOut
+  EXBarrier.memWriteEnableIn := IDBarrier.memWriteEnableOut
+  EXBarrier.memReadEnableIn := IDBarrier.memReadEnableOut
+  EXBarrier.memInputDataIn := IDBarrier.memInputDataOut
+  EXBarrier.regWriteEnableIn := IDBarrier.regWriteEnableOut
 
-  MEM.io.writeData := EXBarrier.ALUResultOut
+  MEM.io.ALURes := EXBarrier.ALUResultOut
+  MEM.io.writeData := EXBarrier.memInputDataOut
+  MEM.io.writeEnable := EXBarrier.memWriteEnableOut
+  MEM.io.readEnable := EXBarrier.memReadEnableOut
   
-  MEMBarrier.readDataIn := MEM.io.readData
+  MEMBarrier.dataIn := MEM.io.data
   MEMBarrier.regWriteAddressIn := EXBarrier.regWriteAddressOut
+  MEMBarrier.regWriteEnableIn := EXBarrier.regWriteEnableOut
 }
