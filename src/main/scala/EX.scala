@@ -27,7 +27,8 @@ class Execute extends MultiIOModule {
     SRA  -> (io.op1 >> io.op2(4, 0)),
     SRL  -> (io.op1.asUInt() >> io.op2(4, 0)).asSInt(),
     SLL  -> (io.op1 << io.op2(4, 0)),
-
+    COPY_A -> (io.op1),
+    COPY_B -> (io.op2),
     // TODO: Add rest of operations
   )
 
