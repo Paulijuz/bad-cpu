@@ -1,6 +1,7 @@
 package FiveStage
 import chisel3._
 import chisel3.experimental.MultiIOModule
+import Chisel.OUTPUT
 
 class EXBarrier extends MultiIOModule {
     val io = IO(
@@ -22,6 +23,17 @@ class EXBarrier extends MultiIOModule {
             val memReadEnableOut = Output(Bool())
 
             val memInputDataOut = Output(SInt())
+
+            val branchTakenIn = Input(Bool())
+            val branchTakenOut = Output(Bool())
+
+            val branchAddrIn = Input(UInt())
+            val branchAddrOut = Output(UInt())
+
+            val PCIn = Input(UInt())
+            val PCOut = Output(UInt())
+            val jumpIn = Input(Bool())
+            val jumpOut = Output(Bool())
         }
     )
 
@@ -32,6 +44,12 @@ class EXBarrier extends MultiIOModule {
     val memWriteEnableOutRegister = RegInit(false.B)
     val memReadEnableOutRegister = RegInit(false.B)
     val memInputDataOutRegister = RegInit(0.S)
+
+    val branchTakenRegister = RegInit(false.B)
+    val branchAddrRegister = RegInit(0.U)
+
+    val PCRegister = RegInit(0.U)
+    val jumpRegister = RegInit(false.B)
 
     ALUResultRegister := io.ALUResultIn
     regWriteAddressRegister := io.regWriteAddressIn
@@ -48,4 +66,14 @@ class EXBarrier extends MultiIOModule {
     io.memReadEnableOut := memReadEnableOutRegister
     io.memInputDataOut := memInputDataOutRegister
     io.regWriteEnableOut := regWriteEnableRegister
+
+    branchTakenRegister := io.branchTakenIn
+    io.branchTakenOut := branchTakenRegister
+    branchAddrRegister := io.branchAddrIn
+    io.branchAddrOut := branchAddrRegister
+
+    PCRegister := io.PCIn
+    io.PCOut := PCRegister
+    jumpRegister := io.jumpIn
+    io.jumpOut := jumpRegister
 }

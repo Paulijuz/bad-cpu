@@ -29,6 +29,17 @@ class IDBarrier extends MultiIOModule {
             val memReadEnableOut = Output(Bool())
 
             val memInputDataOut = Output(SInt())
+
+            val immIn = Input(SInt())
+            val immOut = Output(SInt())
+            val PCIn = Input(UInt())
+            val PCOut = Output(UInt())
+            val branchTypeIn = Input(UInt())
+            val branchTypeOut = Output(UInt())
+            val branchIn = Input(Bool())
+            val branchOut = Output(Bool())
+            val jumpIn = Input(Bool())
+            val jumpOut = Output(Bool())
         }
     )
 
@@ -41,6 +52,12 @@ class IDBarrier extends MultiIOModule {
     val memWriteEnableOutRegister = RegInit(false.B)
     val memReadEnableOutRegister = RegInit(false.B)
     val memInputDataOutRegister = RegInit(0.S)
+
+    val immRegister = RegInit(0.S)
+    val PCRegister = RegInit(0.U)
+    val branchTypeRegister = RegInit(0.U)
+    val branchRegister = RegInit(false.B)
+    val jumpRegister = RegInit(false.B)
 
     operand1Register := io.operand1In
     operand2Register := io.operand2In
@@ -61,4 +78,15 @@ class IDBarrier extends MultiIOModule {
     io.memWriteEnableOut := memWriteEnableOutRegister
     io.memReadEnableOut := memReadEnableOutRegister
     io.memInputDataOut := memInputDataOutRegister
+
+    immRegister := io.immIn
+    io.immOut := immRegister
+    PCRegister := io.PCIn
+    io.PCOut := PCRegister
+    branchTypeRegister := io.branchTypeIn
+    io.branchTypeOut := branchTypeRegister
+    branchRegister := io.branchIn
+    io.branchOut := branchRegister
+    jumpRegister := io.jumpIn
+    io.jumpOut := jumpRegister
 }

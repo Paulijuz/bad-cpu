@@ -23,6 +23,9 @@ class InstructionFetch extends MultiIOModule {
     */
   val io = IO(
     new Bundle {
+      val branchAddr = Input(UInt())
+      val branchTaken = Input(Bool())
+
       val PC = Output(UInt())
       val instruction = Output(new Instruction)
     })
@@ -46,7 +49,8 @@ class InstructionFetch extends MultiIOModule {
   io.PC := PC
   IMEM.io.instructionAddress := PC
 
-  PC := PC + 4.U
+  PC := Mux(io.branchTaken, io.branchAddr, PC + 4.U)
+  io.PC := PC
 
   val instruction = Wire(new Instruction)
   instruction := IMEM.io.instruction.asTypeOf(new Instruction)

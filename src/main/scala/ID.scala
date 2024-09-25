@@ -27,6 +27,7 @@ class InstructionDecode extends MultiIOModule {
 
       val operand1 = Output(SInt())
       val operand2 = Output(SInt())
+      val imm = Output(SInt())
 
       val ALUOp = Output(UInt(4.W))
       val immType = Output(UInt())
@@ -42,6 +43,10 @@ class InstructionDecode extends MultiIOModule {
       val memReadEnable = Output(Bool())
 
       val memInputData = Output(SInt())
+
+      val branchType = Output(UInt())
+      val branch = Output(Bool())
+      val jump = Output(Bool())
     }
   )
 
@@ -71,6 +76,11 @@ class InstructionDecode extends MultiIOModule {
 
   var imm = MuxLookup(decoder.immType, 0xDEADBEEF.S, immLookup)
   
+  var operand1Lookup = Array(
+    Op1Select.PC -> io.PC.asSInt(),
+    Op2Select.rs2 -> registers.io.readData1.asSInt(),
+  )
+
   var operand2Lookup = Array(
     Op2Select.imm -> imm,
     Op2Select.rs2 -> registers.io.readData2.asSInt(),
@@ -82,9 +92,10 @@ class InstructionDecode extends MultiIOModule {
   registers.io.writeAddress := io.writeAddress
   registers.io.writeData    := io.writeData.asUInt()
 
-  io.operand1 := registers.io.readData1.asSInt()
+  io.operand1 := MuxLookup(decoder.op1Select, 0x69.S, operand1Lookup)
   io.operand2 := MuxLookup(decoder.op2Select, 0x42.S, operand2Lookup)
-  
+  io.imm := imm
+
   io.regWriteAddress := io.instruction.registerRd
   io.regWriteEnable := decoder.controlSignals.regWrite
 
@@ -95,6 +106,10 @@ class InstructionDecode extends MultiIOModule {
 
   io.ALUOp := decoder.ALUop
   io.immType := decoder.immType
+
+  io.branchType := decoder.branchType
+  io.branch := decoder.controlSignals.branch
+  io.jump := decoder.controlSignals.jump
 
   decoder.instruction := io.instruction
 }

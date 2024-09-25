@@ -12,9 +12,19 @@ class Execute extends MultiIOModule {
       val op1 = Input(SInt())
       val op2 = Input(SInt())
 
+      val PC = Input(UInt())
+      val imm = Input(SInt())
+      val branchType = Input(UInt())
+      val branch = Input(Bool())
+      val jump = Input(Bool())
+
       val aluResult = Output(SInt())
+      val branchTaken = Output(Bool())
+      val branchAddr = Output(UInt())
     }
   )
+
+  val brancher = Module(new Brancher()).io
 
   val ALUopMap = Array(
     ADD  -> (io.op1 + io.op2),
@@ -33,4 +43,10 @@ class Execute extends MultiIOModule {
   )
 
   io.aluResult := MuxLookup(io.aluOp, 0x42069.S(32.W), ALUopMap)
+  io.branchTaken := io.jump || io.branch && brancher.branchTaken
+
+  brancher.branchType := io.branchType
+  brancher.negative := io.aluResult < 0.S
+  brancher.zero := io.aluResult === 0.S
+  io.branchAddr := Mux(io.jump, io.aluResult.asUInt(), (io.imm + io.PC.asSInt()).asUInt())
 }

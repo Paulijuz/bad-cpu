@@ -82,13 +82,13 @@ object branchType {
 object Op1Select {
   val rs1 = 0.asUInt(1.W)
   val PC  = 1.asUInt(1.W)
-  val Op1DC  = 0.asUInt(1.W)
+  val DC  = 0.asUInt(1.W)
 }
 
 object Op2Select {
   val rs2 = 0.asUInt(1.W)
   val imm = 1.asUInt(1.W)
-  val Op2DC  = 0.asUInt(1.W)
+  val DC  = 0.asUInt(1.W)
 }
 
 
@@ -119,7 +119,7 @@ object ALUOps {
   val SRA    = 9.U(4.W)
   val COPY_A = 10.U(4.W)
   val COPY_B = 11.U(4.W)
-  val LUI    = 12.U(4.W)
+  val SUBU   = 12.U(4.W)
 
   val DC     = 15.U(4.W)
 }

@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.core.Input
 import chisel3.experimental.MultiIOModule
 import chisel3.experimental._
+import matryoshka.data.id
 
 
 class CPU extends MultiIOModule {
@@ -55,6 +56,9 @@ class CPU extends MultiIOModule {
     TODO: Your code here
     */
 
+  IF.io.branchTaken := EXBarrier.branchTakenOut
+  IF.io.branchAddr := EXBarrier.branchAddrOut
+
   IFBarrier.PCIn := IF.io.PC
   IFBarrier.instructionIn := IF.io.instruction
 
@@ -73,10 +77,20 @@ class CPU extends MultiIOModule {
   IDBarrier.memReadEnableIn := ID.io.memReadEnable
   IDBarrier.memInputDataIn := ID.io.memInputData
   IDBarrier.regWriteEnableIn := ID.io.regWriteEnable
+  IDBarrier.PCIn := IFBarrier.PCOut
+  IDBarrier.immIn := ID.io.imm
+  IDBarrier.branchTypeIn := ID.io.branchType
+  IDBarrier.branchIn := ID.io.branch
+  IDBarrier.jumpIn := ID.io.jump
 
   EX.io.op1 := IDBarrier.operand1Out
   EX.io.op2 := IDBarrier.operand2Out
   EX.io.aluOp := IDBarrier.ALUOpOut
+  EX.io.PC := IDBarrier.PCOut
+  EX.io.imm := IDBarrier.immOut
+  EX.io.branchType := IDBarrier.branchTypeOut
+  EX.io.branch := IDBarrier.branchOut
+  EX.io.jump := IDBarrier.jumpOut
 
   EXBarrier.ALUResultIn := EX.io.aluResult
   EXBarrier.regWriteAddressIn := IDBarrier.regWriteAddressOut
@@ -84,11 +98,17 @@ class CPU extends MultiIOModule {
   EXBarrier.memReadEnableIn := IDBarrier.memReadEnableOut
   EXBarrier.memInputDataIn := IDBarrier.memInputDataOut
   EXBarrier.regWriteEnableIn := IDBarrier.regWriteEnableOut
+  EXBarrier.branchTakenIn := EX.io.branchTaken
+  EXBarrier.branchAddrIn := EX.io.branchAddr
+  EXBarrier.PCIn := IDBarrier.PCOut
+  EXBarrier.jumpIn := IDBarrier.jumpOut
 
   MEM.io.ALURes := EXBarrier.ALUResultOut
   MEM.io.writeData := EXBarrier.memInputDataOut
   MEM.io.writeEnable := EXBarrier.memWriteEnableOut
   MEM.io.readEnable := EXBarrier.memReadEnableOut
+  MEM.io.PC := EXBarrier.PCOut
+  MEM.io.jump := EXBarrier.jumpOut
   
   MEMBarrier.dataIn := MEM.io.data
   MEMBarrier.regWriteAddressIn := EXBarrier.regWriteAddressOut
