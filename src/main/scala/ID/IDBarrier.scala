@@ -5,88 +5,39 @@ import chisel3.experimental.MultiIOModule
 class IDBarrier extends MultiIOModule {
     val io = IO(
         new Bundle {
-            val operand1In = Input(SInt())
-            val operand2In = Input(SInt())
-            val regWriteAddressIn = Input(UInt())
-            val regWriteEnableIn = Input(Bool())
+            val operand1 = new InOutBundle(SInt())
+            val operand2 = new InOutBundle(SInt())
+            val regWriteAddress = new InOutBundle(UInt())
+            val regWriteEnable = new InOutBundle(Bool())
 
-            val ALUOpIn = Input(UInt(4.W))
+            val ALUOp = new InOutBundle(UInt(4.W))
 
-            val operand1Out = Output(SInt())
-            val operand2Out = Output(SInt())
-            val regWriteAddressOut = Output(UInt())
-            val regWriteEnableOut = Output(Bool())
+            val memWriteEnable = new InOutBundle(Bool())
+            val memReadEnable = new InOutBundle(Bool())
 
-            val ALUOpOut = Output(UInt(4.W))
+            val memInputData = new InOutBundle(SInt())
 
-
-            val memWriteEnableIn = Input(Bool())
-            val memReadEnableIn = Input(Bool())
-
-            val memInputDataIn = Input(SInt())
-
-            val memWriteEnableOut = Output(Bool())
-            val memReadEnableOut = Output(Bool())
-
-            val memInputDataOut = Output(SInt())
-
-            val immIn = Input(SInt())
-            val immOut = Output(SInt())
-            val PCIn = Input(UInt())
-            val PCOut = Output(UInt())
-            val branchTypeIn = Input(UInt())
-            val branchTypeOut = Output(UInt())
-            val branchIn = Input(Bool())
-            val branchOut = Output(Bool())
-            val jumpIn = Input(Bool())
-            val jumpOut = Output(Bool())
+            val imm = new InOutBundle(SInt())
+            val pc = new InOutBundle(UInt())
+            val branchType = new InOutBundle(UInt())
+            val branch = new InOutBundle(Bool())
+            val jump = new InOutBundle(Bool())
         }
     )
 
-    val operand1Register = RegInit(0.S)
-    val operand2Register = RegInit(0.S)
-    val regWriteAddressRegister = RegInit(0.U)
-    val ALUOpRegister = RegInit(0.U)
-    val regWriteEnableRegister = RegInit(false.B)
+    io.operand1.out := RegNext(io.operand1.in, 0.S)
+    io.operand2.out := RegNext(io.operand2.in, 0.S)
+    io.regWriteAddress.out := RegNext(io.regWriteAddress.in, 0.U)
+    io.ALUOp.out := RegNext(io.ALUOp.in, 0.U)
+    io.regWriteEnable.out := RegNext(io.regWriteEnable.in, false.B)
 
-    val memWriteEnableOutRegister = RegInit(false.B)
-    val memReadEnableOutRegister = RegInit(false.B)
-    val memInputDataOutRegister = RegInit(0.S)
+    io.memWriteEnable.out := RegNext(io.memWriteEnable.in, false.B)
+    io.memReadEnable.out := RegNext(io.memReadEnable.in, false.B)
+    io.memInputData.out := RegNext(io.memInputData.in, 0.S)
 
-    val immRegister = RegInit(0.S)
-    val PCRegister = RegInit(0.U)
-    val branchTypeRegister = RegInit(0.U)
-    val branchRegister = RegInit(false.B)
-    val jumpRegister = RegInit(false.B)
-
-    operand1Register := io.operand1In
-    operand2Register := io.operand2In
-    regWriteAddressRegister := io.regWriteAddressIn
-    ALUOpRegister := io.ALUOpIn
-    regWriteEnableRegister := io.regWriteEnableIn
-
-    io.operand1Out := operand1Register
-    io.operand2Out := operand2Register
-    io.regWriteAddressOut := regWriteAddressRegister
-    io.ALUOpOut := ALUOpRegister
-    io.regWriteEnableOut := regWriteEnableRegister
-
-    memWriteEnableOutRegister := io.memWriteEnableIn
-    memReadEnableOutRegister := io.memReadEnableIn
-    memInputDataOutRegister := io.memInputDataIn
-
-    io.memWriteEnableOut := memWriteEnableOutRegister
-    io.memReadEnableOut := memReadEnableOutRegister
-    io.memInputDataOut := memInputDataOutRegister
-
-    immRegister := io.immIn
-    io.immOut := immRegister
-    PCRegister := io.PCIn
-    io.PCOut := PCRegister
-    branchTypeRegister := io.branchTypeIn
-    io.branchTypeOut := branchTypeRegister
-    branchRegister := io.branchIn
-    io.branchOut := branchRegister
-    jumpRegister := io.jumpIn
-    io.jumpOut := jumpRegister
+    io.imm.out := RegNext(io.imm.in, 0.S)
+    io.pc.out := RegNext(io.pc.in, 0.U)
+    io.branchType.out := RegNext(io.branchType.in, 0.U)
+    io.branch.out := RegNext(io.branch.in, false.B)
+    io.jump.out := RegNext(io.jump.in, false.B)
 }

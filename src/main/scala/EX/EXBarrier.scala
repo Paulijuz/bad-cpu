@@ -1,79 +1,39 @@
 package FiveStage
 import chisel3._
 import chisel3.experimental.MultiIOModule
-import Chisel.OUTPUT
 
 class EXBarrier extends MultiIOModule {
     val io = IO(
         new Bundle {
-            val ALUResultIn = Input(SInt())
-            val regWriteAddressIn = Input(UInt())
-            val regWriteEnableIn = Input(Bool())
+            val aluResult = new InOutBundle(SInt())
 
-            val ALUResultOut = Output(SInt())
-            val regWriteAddressOut = Output(UInt())
-            val regWriteEnableOut = Output(Bool())
+            val regWriteAddress = new InOutBundle(UInt())
+            val regWriteEnable = new InOutBundle(Bool())
 
-            val memWriteEnableIn = Input(Bool())
-            val memReadEnableIn = Input(Bool())
+            val memWriteEnable = new InOutBundle(Bool())
+            val memInputData = new InOutBundle(SInt())
+            val memReadEnable = new InOutBundle(Bool())
 
-            val memInputDataIn = Input(SInt())
+            val branchTaken = new InOutBundle(Bool())
+            val branchAddr = new InOutBundle(UInt())
 
-            val memWriteEnableOut = Output(Bool())
-            val memReadEnableOut = Output(Bool())
-
-            val memInputDataOut = Output(SInt())
-
-            val branchTakenIn = Input(Bool())
-            val branchTakenOut = Output(Bool())
-
-            val branchAddrIn = Input(UInt())
-            val branchAddrOut = Output(UInt())
-
-            val PCIn = Input(UInt())
-            val PCOut = Output(UInt())
-            val jumpIn = Input(Bool())
-            val jumpOut = Output(Bool())
+            val pc = new InOutBundle(UInt())
+            val jump = new InOutBundle(Bool())
         }
     )
 
-    val ALUResultRegister = RegInit(0.S)
-    val regWriteAddressRegister = RegInit(0.U)
-    val regWriteEnableRegister = RegInit(false.B)
+    io.aluResult.out := RegNext(io.aluResult.in)
 
-    val memWriteEnableOutRegister = RegInit(false.B)
-    val memReadEnableOutRegister = RegInit(false.B)
-    val memInputDataOutRegister = RegInit(0.S)
+    io.regWriteEnable.out := RegNext(io.regWriteEnable.in, false.B)
+    io.regWriteAddress.out := RegNext(io.regWriteAddress.in, 0.U)
 
-    val branchTakenRegister = RegInit(false.B)
-    val branchAddrRegister = RegInit(0.U)
+    io.memWriteEnable.out := RegNext(io.memWriteEnable.in, false.B)
+    io.memReadEnable.out := RegNext(io.memReadEnable.in, false.B)
+    io.memInputData.out := RegNext(io.memInputData.in, 0.S)
 
-    val PCRegister = RegInit(0.U)
-    val jumpRegister = RegInit(false.B)
+    io.branchTaken.out := RegNext(io.branchTaken.in, false.B)
+    io.branchAddr.out := RegNext(io.branchAddr.in, 0.U)
 
-    ALUResultRegister := io.ALUResultIn
-    regWriteAddressRegister := io.regWriteAddressIn
-
-    io.ALUResultOut := ALUResultRegister
-    io.regWriteAddressOut := regWriteAddressRegister
-
-    memWriteEnableOutRegister := io.memWriteEnableIn
-    memReadEnableOutRegister := io.memReadEnableIn
-    memInputDataOutRegister := io.memInputDataIn
-    regWriteEnableRegister := io.regWriteEnableIn
-
-    io.memWriteEnableOut := memWriteEnableOutRegister
-    io.memReadEnableOut := memReadEnableOutRegister
-    io.memInputDataOut := memInputDataOutRegister
-    io.regWriteEnableOut := regWriteEnableRegister
-
-    branchTakenRegister := io.branchTakenIn
-    io.branchTakenOut := branchTakenRegister
-    branchAddrRegister := io.branchAddrIn
-    io.branchAddrOut := branchAddrRegister
-
-    PCRegister := io.PCIn
-    io.PCOut := PCRegister
-    jumpRegister := io.jumpIn
-    io.jumpOut := jumpRegister
+    io.pc.out := RegNext(io.pc.in, 0.U)
+    io.jump.out := RegNext(io.jump.in, false.B)
 }
