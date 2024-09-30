@@ -25,28 +25,18 @@ class InstructionDecode extends MultiIOModule {
       val PC = Input(UInt())
       val instruction = Input(new Instruction)
 
-      val operand1 = Output(SInt())
-      val operand2 = Output(SInt())
-      val imm = Output(SInt())
-
-      val ALUOp = Output(UInt(4.W))
-      val immType = Output(UInt())
-
-      val regWriteAddress = Output(UInt())
-      val regWriteEnable = Output(Bool())
-
       val writeEnable = Input(Bool())
       val writeAddress = Input(UInt())
       val writeData = Input(SInt())
 
-      val memWriteEnable = Output(Bool())
-      val memReadEnable = Output(Bool())
+      val operand1 = Output(SInt())
+      val operand2 = Output(SInt())
+
+      val imm = Output(SInt())
 
       val memInputData = Output(SInt())
 
-      val branchType = Output(UInt())
-      val branch = Output(Bool())
-      val jump = Output(Bool())
+      val controlSignals = Output(new ControlSignalsBundle())
     }
   )
 
@@ -86,6 +76,8 @@ class InstructionDecode extends MultiIOModule {
     Op2Select.rs2 -> registers.io.readData2.asSInt(),
   )
 
+  decoder.instruction := io.instruction
+  
   registers.io.readAddress1 := io.instruction.registerRs1
   registers.io.readAddress2 := io.instruction.registerRs2
   registers.io.writeEnable  := io.writeEnable
@@ -96,20 +88,18 @@ class InstructionDecode extends MultiIOModule {
   io.operand2 := MuxLookup(decoder.op2Select, 0x42.S, operand2Lookup)
   io.imm := imm
 
-  io.regWriteAddress := io.instruction.registerRd
-  io.regWriteEnable := decoder.controlSignals.regWrite
-
-  io.memWriteEnable := decoder.controlSignals.memWrite
-  io.memReadEnable := decoder.controlSignals.memRead
-  
   io.memInputData := registers.io.readData2.asSInt()
 
-  io.ALUOp := decoder.ALUop
-  io.immType := decoder.immType
+  io.controlSignals.regWriteAddress := io.instruction.registerRd
+  io.controlSignals.regWriteEnable := decoder.controlSignals.regWrite
 
-  io.branchType := decoder.branchType
-  io.branch := decoder.controlSignals.branch
-  io.jump := decoder.controlSignals.jump
+  io.controlSignals.memWriteEnable := decoder.controlSignals.memWrite
+  io.controlSignals.memReadEnable := decoder.controlSignals.memRead
+  
+  io.controlSignals.aluOp := decoder.ALUop
 
-  decoder.instruction := io.instruction
+  io.controlSignals.branchType := decoder.branchType
+  io.controlSignals.branch := decoder.controlSignals.branch
+  io.controlSignals.jump := decoder.controlSignals.jump
+
 }

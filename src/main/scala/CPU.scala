@@ -52,9 +52,7 @@ class CPU extends MultiIOModule {
   testHarness.currentPC  := IF.testHarness.PC
 
 
-  /**
-    TODO: Your code here
-    */
+  // IF
 
   IF.io.branchTaken := EXBarrier.branchTaken.out
   IF.io.branchAddr := EXBarrier.branchAddr.out
@@ -62,55 +60,56 @@ class CPU extends MultiIOModule {
   IFBarrier.pc.in := IF.io.PC
   IFBarrier.instruction.in := IF.io.instruction
 
+  // ID
+
   ID.io.PC := IFBarrier.pc.out
   ID.io.instruction := IFBarrier.instruction.out
 
-  ID.io.writeEnable := MEMBarrier.regWriteEnable.out
+  ID.io.writeEnable := MEMBarrier.controlSignals.out.regWriteEnable
   ID.io.writeData := MEMBarrier.data.out
-  ID.io.writeAddress := MEMBarrier.regWriteAddress.out
+  ID.io.writeAddress := MEMBarrier.controlSignals.out.regWriteAddress
 
   IDBarrier.operand1.in := ID.io.operand1
   IDBarrier.operand2.in := ID.io.operand2
-  IDBarrier.ALUOp.in := ID.io.ALUOp
-  IDBarrier.regWriteAddress.in := ID.io.regWriteAddress
-  IDBarrier.memWriteEnable.in := ID.io.memWriteEnable
-  IDBarrier.memReadEnable.in := ID.io.memReadEnable
-  IDBarrier.memInputData.in := ID.io.memInputData
-  IDBarrier.regWriteEnable.in := ID.io.regWriteEnable
+  
   IDBarrier.pc.in := IFBarrier.pc.out
   IDBarrier.imm.in := ID.io.imm
-  IDBarrier.branchType.in := ID.io.branchType
-  IDBarrier.branch.in := ID.io.branch
-  IDBarrier.jump.in := ID.io.jump
+  
+  IDBarrier.memInputData.in := ID.io.memInputData
+  
+  IDBarrier.controlSignals.in <> ID.io.controlSignals
+
+  // EX
 
   EX.io.op1 := IDBarrier.operand1.out
   EX.io.op2 := IDBarrier.operand2.out
-  EX.io.aluOp := IDBarrier.ALUOp.out
+  EX.io.aluOp := IDBarrier.controlSignals.out.aluOp
   EX.io.PC := IDBarrier.pc.out
   EX.io.imm := IDBarrier.imm.out
-  EX.io.branchType := IDBarrier.branchType.out
-  EX.io.branch := IDBarrier.branch.out
-  EX.io.jump := IDBarrier.jump.out
-
+  EX.io.branchType := IDBarrier.controlSignals.out.branchType
+  EX.io.branch := IDBarrier.controlSignals.out.branch
+  EX.io.jump := IDBarrier.controlSignals.out.jump
+  
   EXBarrier.aluResult.in := EX.io.aluResult
-  EXBarrier.regWriteAddress.in := IDBarrier.regWriteAddress.out
-  EXBarrier.memWriteEnable.in := IDBarrier.memWriteEnable.out
-  EXBarrier.memReadEnable.in := IDBarrier.memReadEnable.out
+  
   EXBarrier.memInputData.in := IDBarrier.memInputData.out
-  EXBarrier.regWriteEnable.in := IDBarrier.regWriteEnable.out
-  EXBarrier.branchTaken.in := EX.io.branchTaken
+  
   EXBarrier.branchAddr.in := EX.io.branchAddr
+  EXBarrier.branchTaken.in := EX.io.branchTaken
+  
   EXBarrier.pc.in := IDBarrier.pc.out
-  EXBarrier.jump.in := IDBarrier.jump.out
+
+  EXBarrier.controlSignals.in <> IDBarrier.controlSignals.out
+
+  // MEM
 
   MEM.io.ALURes := EXBarrier.aluResult.out
   MEM.io.writeData := EXBarrier.memInputData.out
-  MEM.io.writeEnable := EXBarrier.memWriteEnable.out
-  MEM.io.readEnable := EXBarrier.memReadEnable.out
+  MEM.io.writeEnable := EXBarrier.controlSignals.out.memWriteEnable
+  MEM.io.readEnable := EXBarrier.controlSignals.out.memReadEnable
   MEM.io.PC := EXBarrier.pc.out
-  MEM.io.jump := EXBarrier.jump.out
+  MEM.io.jump := EXBarrier.controlSignals.out.jump
   
   MEMBarrier.data.in := MEM.io.data
-  MEMBarrier.regWriteAddress.in := EXBarrier.regWriteAddress.out
-  MEMBarrier.regWriteEnable.in := EXBarrier.regWriteEnable.out
+  MEMBarrier.controlSignals.in <> EXBarrier.controlSignals.out
 }
