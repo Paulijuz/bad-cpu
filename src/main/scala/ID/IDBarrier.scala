@@ -30,5 +30,6 @@ class IDBarrier extends MultiIOModule {
     
     val controlSignalBarrier = Module(new ControlSignalBarrier())
     controlSignalBarrier.io.stall := io.stall
+    controlSignalBarrier.io.flush := io.stall
     io.controlSignals <> controlSignalBarrier.io.controlSignals
 }

@@ -32,5 +32,6 @@ class EXBarrier extends MultiIOModule {
 
     val controlSignalBarrier = Module(new ControlSignalBarrier())
     controlSignalBarrier.io.stall := io.stall
+    controlSignalBarrier.io.flush := false.B
     io.controlSignals <> controlSignalBarrier.io.controlSignals
 }

@@ -1,7 +1,9 @@
 package FiveStage
 import chisel3._
+import chisel3.util.Counter
 import chisel3.experimental.MultiIOModule
 import Latch._
+import shapeless.ops.nat
 
 class InstructionFetch extends MultiIOModule {
 
@@ -31,8 +33,10 @@ class InstructionFetch extends MultiIOModule {
     })
 
   val IMEM = Module(new IMEM)
-  val PC   = RegInit(UInt(32.W), 0.U)
-
+  
+  val pcReg     = RegInit(UInt(32.W), 0.U)
+  val prevPcReg = RegInit(0.U)
+  
 
   /**
     * Setup. You should not change this code
@@ -41,16 +45,20 @@ class InstructionFetch extends MultiIOModule {
   testHarness.PC := IMEM.testHarness.requestedAddress
 
 
-  /**
-    * You should expand on or rewrite the code below.
-    */
-  io.PC := PC
-  IMEM.io.instructionAddress := PC
+  // Since IMEM adds a one cycle delay for the instruction we need to do some wierd
+  // shenanigangs to make sure that the correct instruction is held when we stall.
 
+  // Only update the PC when we're not stalled
   when (!io.stall) {
-    PC := Mux(io.branchTaken, io.branchAddr, PC + 4.U)
+    pcReg := Mux(io.branchTaken, io.branchAddr, pcReg + 4.U)
+    prevPcReg := pcReg // Store the previous PC so that when we stall we can use that PC instead.
   }
-  io.PC := PC
+
+  val pc = Wire(UInt()) // Create a wire for PC to avoid having to rewrite the MUX bellow
+  pc := Mux(io.stall, prevPcReg, pcReg) // When we stall use the previous PC.
+
+  IMEM.io.instructionAddress := pc
+  io.PC := pc
 
   val instruction = Wire(new Instruction)
   instruction := IMEM.io.instruction.asTypeOf(new Instruction)
@@ -61,7 +69,7 @@ class InstructionFetch extends MultiIOModule {
     * Setup. You should not change this code.
     */
   when(testHarness.IMEMsetup.setup) {
-    PC := 0.U
+    pcReg := 0.U
     instruction := Instruction.NOP
   }
 }

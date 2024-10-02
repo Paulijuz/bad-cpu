@@ -3,6 +3,7 @@ import chisel3._
 import chisel3.util.{ BitPat, MuxCase }
 import chisel3.experimental.MultiIOModule
 import chisel3.util.MuxLookup
+import com.ibm.icu.text.LocaleDisplayNames.UiListItem
 
 
 class InstructionDecode extends MultiIOModule {
@@ -19,15 +20,16 @@ class InstructionDecode extends MultiIOModule {
 
   val io = IO(
     new Bundle {
-      /**
-        * TODO: Your code here.
-        */
       val PC = Input(UInt())
       val instruction = Input(new Instruction)
 
-      val writeEnable = Input(Bool())
+      val writeEnable  = Input(Bool())
       val writeAddress = Input(UInt())
-      val writeData = Input(SInt())
+      val writeData    = Input(SInt())
+
+      val idRd  = Input(UInt())
+      val exRd  = Input(UInt())
+      val memRd = Input(UInt())
 
       val operand1 = Output(SInt())
       val operand2 = Output(SInt())
@@ -37,11 +39,14 @@ class InstructionDecode extends MultiIOModule {
       val memInputData = Output(SInt())
 
       val controlSignals = Output(new ControlSignalsBundle())
+      
+      val stall = Output(Bool())
     }
   )
 
   val registers = Module(new Registers)
   val decoder   = Module(new Decoder).io
+  val hdu       = Module(new HDU()).io
 
   /**
     * Setup. You should not change this code
@@ -52,7 +57,7 @@ class InstructionDecode extends MultiIOModule {
 
 
   /**
-    * TODO: Your code here.
+    * My code
     */
 
   var immLookup = Array(
@@ -90,7 +95,8 @@ class InstructionDecode extends MultiIOModule {
 
   io.memInputData := registers.io.readData2.asSInt()
 
-  io.controlSignals.regWriteAddress := io.instruction.registerRd
+  // We have to avoid passing a random Rd when not writing to a register to avoid confusing the HDU
+  io.controlSignals.regWriteAddress := Mux(decoder.controlSignals.regWrite, io.instruction.registerRd, 0.U)
   io.controlSignals.regWriteEnable := decoder.controlSignals.regWrite
 
   io.controlSignals.memWriteEnable := decoder.controlSignals.memWrite
@@ -102,4 +108,12 @@ class InstructionDecode extends MultiIOModule {
   io.controlSignals.branch := decoder.controlSignals.branch
   io.controlSignals.jump := decoder.controlSignals.jump
 
+  hdu.idRs1 := io.instruction.registerRs1
+  hdu.idRs2 := io.instruction.registerRs2
+
+  hdu.idRd  := io.idRd
+  hdu.exRd  := io.exRd
+  hdu.memRd := io.memRd
+
+  io.stall := hdu.stall
 }
