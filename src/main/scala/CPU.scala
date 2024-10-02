@@ -51,16 +51,23 @@ class CPU extends MultiIOModule {
   testHarness.memUpdates := MEM.testHarness.testUpdates
   testHarness.currentPC  := IF.testHarness.PC
 
+  ////////
+  // IF //
+  ////////
 
-  // IF
+  IF.io.stall := false.B
 
   IF.io.branchTaken := EXBarrier.branchTaken.out
   IF.io.branchAddr := EXBarrier.branchAddr.out
 
+  IFBarrier.stall := false.B
+
   IFBarrier.pc.in := IF.io.PC
   IFBarrier.instruction.in := IF.io.instruction
 
-  // ID
+  ////////
+  // ID //
+  ////////
 
   ID.io.PC := IFBarrier.pc.out
   ID.io.instruction := IFBarrier.instruction.out
@@ -68,6 +75,8 @@ class CPU extends MultiIOModule {
   ID.io.writeEnable := MEMBarrier.controlSignals.out.regWriteEnable
   ID.io.writeData := MEMBarrier.data.out
   ID.io.writeAddress := MEMBarrier.controlSignals.out.regWriteAddress
+
+  IDBarrier.stall := false.B
 
   IDBarrier.operand1.in := ID.io.operand1
   IDBarrier.operand2.in := ID.io.operand2
@@ -79,7 +88,9 @@ class CPU extends MultiIOModule {
   
   IDBarrier.controlSignals.in <> ID.io.controlSignals
 
-  // EX
+  ////////
+  // EX //
+  ////////
 
   EX.io.op1 := IDBarrier.operand1.out
   EX.io.op2 := IDBarrier.operand2.out
@@ -90,6 +101,8 @@ class CPU extends MultiIOModule {
   EX.io.branch := IDBarrier.controlSignals.out.branch
   EX.io.jump := IDBarrier.controlSignals.out.jump
   
+  EXBarrier.stall := false.B
+
   EXBarrier.aluResult.in := EX.io.aluResult
   
   EXBarrier.memInputData.in := IDBarrier.memInputData.out
@@ -101,7 +114,9 @@ class CPU extends MultiIOModule {
 
   EXBarrier.controlSignals.in <> IDBarrier.controlSignals.out
 
-  // MEM
+  /////////
+  // MEM //
+  /////////
 
   MEM.io.ALURes := EXBarrier.aluResult.out
   MEM.io.writeData := EXBarrier.memInputData.out
@@ -110,6 +125,8 @@ class CPU extends MultiIOModule {
   MEM.io.PC := EXBarrier.pc.out
   MEM.io.jump := EXBarrier.controlSignals.out.jump
   
+  MEMBarrier.stall := false.B
+
   MEMBarrier.data.in := MEM.io.data
   MEMBarrier.controlSignals.in <> EXBarrier.controlSignals.out
 }

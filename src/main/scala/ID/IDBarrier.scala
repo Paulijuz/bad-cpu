@@ -1,10 +1,13 @@
 package FiveStage
 import chisel3._
 import chisel3.experimental.MultiIOModule
+import Latch._
 
 class IDBarrier extends MultiIOModule {
     val io = IO(
         new Bundle {
+            val stall = Input(Bool())
+
             val operand1 = new InOutBundle(SInt())
             val operand2 = new InOutBundle(SInt())
                         
@@ -17,13 +20,15 @@ class IDBarrier extends MultiIOModule {
         }
     )
 
-    io.operand1.out := RegNext(io.operand1.in, 0.S)
-    io.operand2.out := RegNext(io.operand2.in, 0.S)
+    inOutLatch(io.operand1, io.stall)
+    inOutLatch(io.operand2, io.stall)
     
-    io.imm.out := RegNext(io.imm.in, 0.S)
-    io.pc.out := RegNext(io.pc.in, 0.U)
+    inOutLatch(io.imm, io.stall)
+    inOutLatch(io.pc, io.stall)
     
-    io.memInputData.out := RegNext(io.memInputData.in, 0.S)
-
-    io.controlSignals <> Module(new ControlSignalBarrier()).io
+    inOutLatch(io.memInputData, io.stall)
+    
+    val controlSignalBarrier = Module(new ControlSignalBarrier())
+    controlSignalBarrier.io.stall := io.stall
+    io.controlSignals <> controlSignalBarrier.io.controlSignals
 }

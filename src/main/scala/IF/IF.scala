@@ -1,6 +1,7 @@
 package FiveStage
 import chisel3._
 import chisel3.experimental.MultiIOModule
+import Latch._
 
 class InstructionFetch extends MultiIOModule {
 
@@ -14,9 +15,6 @@ class InstructionFetch extends MultiIOModule {
 
 
   /**
-    * TODO: Add input signals for handling events such as jumps
-
-    * TODO: Add output signal for the instruction. 
     * The instruction is of type Bundle, which means that you must
     * use the same syntax used in the testHarness for IMEM setup signals
     * further up.
@@ -25,6 +23,8 @@ class InstructionFetch extends MultiIOModule {
     new Bundle {
       val branchAddr = Input(UInt())
       val branchTaken = Input(Bool())
+
+      val stall = Input(Bool())
 
       val PC = Output(UInt())
       val instruction = Output(new Instruction)
@@ -42,14 +42,14 @@ class InstructionFetch extends MultiIOModule {
 
 
   /**
-    * TODO: Your code here.
-    * 
     * You should expand on or rewrite the code below.
     */
   io.PC := PC
   IMEM.io.instructionAddress := PC
 
-  PC := Mux(io.branchTaken, io.branchAddr, PC + 4.U)
+  when (!io.stall) {
+    PC := Mux(io.branchTaken, io.branchAddr, PC + 4.U)
+  }
   io.PC := PC
 
   val instruction = Wire(new Instruction)
