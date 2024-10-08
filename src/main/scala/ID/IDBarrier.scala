@@ -7,6 +7,7 @@ class IDBarrier extends MultiIOModule {
     val io = IO(
         new Bundle {
             val stall = Input(Bool())
+            val flush = Input(Bool())
 
             val operand1 = new InOutBundle(SInt())
             val operand2 = new InOutBundle(SInt())
@@ -30,6 +31,6 @@ class IDBarrier extends MultiIOModule {
     
     val controlSignalBarrier = Module(new ControlSignalBarrier())
     controlSignalBarrier.io.stall := io.stall
-    controlSignalBarrier.io.flush := io.stall
+    controlSignalBarrier.io.flush := io.flush
     io.controlSignals <> controlSignalBarrier.io.controlSignals
 }

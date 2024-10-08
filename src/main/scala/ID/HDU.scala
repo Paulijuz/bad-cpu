@@ -8,14 +8,15 @@ class HDU extends Module {
     val idRs1 = Input(UInt())
     val idRs2 = Input(UInt())
 
-    val idRd  = Input(UInt())
     val exRd  = Input(UInt())
     val memRd = Input(UInt())
+    val wbRd  = Input(UInt())
 
-    val stall = Output(Bool())
+    val rs1Raw = Output(Bool())
+    val rs2Raw = Output(Bool())
   })
 
-  val rdSignals = Vec(io.idRd, io.exRd, io.memRd)
+  val rdSignals = Vec(io.exRd, io.memRd, io.wbRd)
 
   // This function return true if the the given register Rs
   // will be written to by a instruction further down the line.
@@ -23,6 +24,6 @@ class HDU extends Module {
     rs != 0.U && rdSignals.exists(rd => rs === rd)
   }
 
-  // If either Rs1 or Rs2 is a RAW hazard stall until it's no longer a problem.
-  io.stall := isRawHazard(io.idRs1) || isRawHazard(io.idRs2)
+  io.rs1Raw := isRawHazard(io.idRs1)
+  io.rs2Raw := isRawHazard(io.idRs2)
 }

@@ -6,7 +6,7 @@ import Latch._
 class EXBarrier extends MultiIOModule {
     val io = IO(
         new Bundle {
-            val stall = Input(Bool())
+            val flush = Input(Bool())
 
             val aluResult = new InOutBundle(SInt())
 
@@ -21,17 +21,17 @@ class EXBarrier extends MultiIOModule {
         }
     )
 
-    inOutLatch(io.aluResult, io.stall)
+    inOutLatch(io.aluResult, false.B, io.flush)
 
-    inOutLatch(io.memInputData, io.stall)
+    inOutLatch(io.memInputData, false.B, io.flush)
 
-    inOutLatch(io.branchAddr, io.stall)
-    inOutLatch(io.branchTaken, io.stall)
+    inOutLatch(io.branchAddr, false.B, io.flush)
+    inOutLatch(io.branchTaken, false.B, io.flush)
 
-    inOutLatch(io.pc, io.stall)
+    inOutLatch(io.pc, false.B, io.flush)
 
     val controlSignalBarrier = Module(new ControlSignalBarrier())
-    controlSignalBarrier.io.stall := io.stall
-    controlSignalBarrier.io.flush := false.B
+    controlSignalBarrier.io.stall := false.B
+    controlSignalBarrier.io.flush := io.flush
     io.controlSignals <> controlSignalBarrier.io.controlSignals
 }

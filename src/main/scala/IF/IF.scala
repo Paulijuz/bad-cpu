@@ -48,8 +48,9 @@ class InstructionFetch extends MultiIOModule {
   // Since IMEM adds a one cycle delay for the instruction we need to do some wierd
   // shenanigangs to make sure that the correct instruction is held when we stall.
 
-  // Only update the PC when we're not stalled
-  when (!io.stall) {
+  // Only update the PC when we're not stalled.
+  // Except also when a branch is taken so we don't miss the branch.
+  when (!io.stall || io.branchTaken) {
     pcReg := Mux(io.branchTaken, io.branchAddr, pcReg + 4.U)
     prevPcReg := pcReg // Store the previous PC so that when we stall we can use that PC instead.
   }
@@ -63,7 +64,9 @@ class InstructionFetch extends MultiIOModule {
   val instruction = Wire(new Instruction)
   instruction := IMEM.io.instruction.asTypeOf(new Instruction)
 
-  io.instruction := instruction
+  // Since the instruction memory is delayed by one cycle and it'll take one cycle to update the PC register after a branch
+  // we'll have to give out NOP for the next two cycles after a branch.
+  io.instruction := Mux(io.branchTaken || RegNext(io.branchTaken), Instruction.NOP, instruction)
 
   /**
     * Setup. You should not change this code.

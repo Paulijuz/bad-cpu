@@ -62,6 +62,7 @@ class CPU extends MultiIOModule {
 
 
   IFBarrier.stall := ID.io.stall
+  IFBarrier.flush := EXBarrier.branchTaken.out
 
   IFBarrier.pc.in := IF.io.PC
   IFBarrier.instruction.in := IF.io.instruction
@@ -77,12 +78,13 @@ class CPU extends MultiIOModule {
   ID.io.writeData := MEMBarrier.data.out
   ID.io.writeAddress := MEMBarrier.controlSignals.out.regWriteAddress
 
-  ID.io.idRd  := IDBarrier.controlSignals.out.regWriteAddress
-  ID.io.exRd  := EXBarrier.controlSignals.out.regWriteAddress
-  ID.io.memRd := MEMBarrier.controlSignals.out.regWriteAddress
+  ID.io.exRd  := IDBarrier.controlSignals.out.regWriteAddress
+  ID.io.memRd := EXBarrier.controlSignals.out.regWriteAddress
+  ID.io.wbRd  := MEMBarrier.controlSignals.out.regWriteAddress
 
 
   IDBarrier.stall := ID.io.stall
+  IDBarrier.flush := ID.io.stall || EXBarrier.branchTaken.out
 
   IDBarrier.operand1.in := ID.io.operand1
   IDBarrier.operand2.in := ID.io.operand2
@@ -105,9 +107,8 @@ class CPU extends MultiIOModule {
   EX.io.branch := IDBarrier.controlSignals.out.branch
   EX.io.jump := IDBarrier.controlSignals.out.jump
 
+  EXBarrier.flush := EXBarrier.branchTaken.out
   
-  EXBarrier.stall := false.B
-
   EXBarrier.aluResult.in := EX.io.aluResult
   EXBarrier.memInputData.in := IDBarrier.memInputData.out
   EXBarrier.branchAddr.in := EX.io.branchAddr
@@ -127,8 +128,6 @@ class CPU extends MultiIOModule {
   MEM.io.PC := EXBarrier.pc.out
   MEM.io.jump := EXBarrier.controlSignals.out.jump
   
-
-  MEMBarrier.stall := false.B
 
   MEMBarrier.data.in := MEM.io.data
 

@@ -7,13 +7,14 @@ class IFBarrier extends MultiIOModule {
     val io = IO(
         new Bundle {
             val stall = Input(Bool())
+            val flush = Input(Bool())
 
             val pc = new InOutBundle(UInt())
             val instruction = new InOutBundle(new Instruction)
         }
     )
 
-    inOutLatch(io.pc, io.stall)
+    inOutLatch(io.pc, io.stall, io.flush)
 
     // Since the instruction is already delayed by one cycle from reading the IMEM
     // we don't have to add a once cycle delay with a latch in the barrier.
