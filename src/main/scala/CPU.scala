@@ -78,19 +78,18 @@ class CPU extends MultiIOModule {
   ID.io.writeData := MEMBarrier.data.out
   ID.io.writeAddress := MEMBarrier.controlSignals.out.regWriteAddress
 
-  ID.io.exRd  := IDBarrier.controlSignals.out.regWriteAddress
-  ID.io.memRd := EXBarrier.controlSignals.out.regWriteAddress
-  ID.io.wbRd  := MEMBarrier.controlSignals.out.regWriteAddress
-
+  ID.io.exRd            := IDBarrier.controlSignals.out.regWriteAddress
+  ID.io.aluResWriteBack := !IDBarrier.controlSignals.out.jump && !IDBarrier.controlSignals.out.memReadEnable
 
   IDBarrier.stall := ID.io.stall
   IDBarrier.flush := ID.io.stall || EXBarrier.branchTaken.out
 
-  IDBarrier.operand1.in := ID.io.operand1
-  IDBarrier.operand2.in := ID.io.operand2
+  IDBarrier.rs1Data.in := ID.io.rs1Data
+  IDBarrier.rs1Addr.in := ID.io.rs1Addr
+  IDBarrier.rs2Data.in := ID.io.rs2Data
+  IDBarrier.rs2Addr.in := ID.io.rs2Addr
   IDBarrier.pc.in := IFBarrier.pc.out
   IDBarrier.imm.in := ID.io.imm
-  IDBarrier.memInputData.in := ID.io.memInputData
   
   IDBarrier.controlSignals.in <> ID.io.controlSignals
 
@@ -98,19 +97,30 @@ class CPU extends MultiIOModule {
   // EX //
   ////////
 
-  EX.io.op1 := IDBarrier.operand1.out
-  EX.io.op2 := IDBarrier.operand2.out
+  EX.io.op1Select := IDBarrier.controlSignals.out.op1Select
+  EX.io.op2Select := IDBarrier.controlSignals.out.op2Select
   EX.io.aluOp := IDBarrier.controlSignals.out.aluOp
+  
   EX.io.PC := IDBarrier.pc.out
   EX.io.imm := IDBarrier.imm.out
+  EX.io.rs1Addr := IDBarrier.rs1Addr.out
+  EX.io.rs1Data := IDBarrier.rs1Data.out
+  EX.io.rs2Addr := IDBarrier.rs2Addr.out
+  EX.io.rs2Data := IDBarrier.rs2Data.out
+
   EX.io.branchType := IDBarrier.controlSignals.out.branchType
   EX.io.branch := IDBarrier.controlSignals.out.branch
   EX.io.jump := IDBarrier.controlSignals.out.jump
 
+  EX.io.exRd  := EXBarrier.controlSignals.out.regWriteAddress
+  EX.io.exData := EXBarrier.aluResult.out
+  EX.io.memRd := MEMBarrier.controlSignals.out.regWriteAddress
+  EX.io.memData := MEMBarrier.data.out
+  
   EXBarrier.flush := EXBarrier.branchTaken.out
   
   EXBarrier.aluResult.in := EX.io.aluResult
-  EXBarrier.memInputData.in := IDBarrier.memInputData.out
+  EXBarrier.memWriteData.in := EX.io.memWriteData
   EXBarrier.branchAddr.in := EX.io.branchAddr
   EXBarrier.branchTaken.in := EX.io.branchTaken
   EXBarrier.pc.in := IDBarrier.pc.out
@@ -122,7 +132,7 @@ class CPU extends MultiIOModule {
   /////////
 
   MEM.io.ALURes := EXBarrier.aluResult.out
-  MEM.io.writeData := EXBarrier.memInputData.out
+  MEM.io.writeData := EXBarrier.memWriteData.out
   MEM.io.writeEnable := EXBarrier.controlSignals.out.memWriteEnable
   MEM.io.readEnable := EXBarrier.controlSignals.out.memReadEnable
   MEM.io.PC := EXBarrier.pc.out

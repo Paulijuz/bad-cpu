@@ -9,11 +9,11 @@ class IDBarrier extends MultiIOModule {
             val stall = Input(Bool())
             val flush = Input(Bool())
 
-            val operand1 = new InOutBundle(SInt())
-            val operand2 = new InOutBundle(SInt())
+            val rs1Data = new InOutBundle(UInt())
+            val rs1Addr = new InOutBundle(UInt())
+            val rs2Data = new InOutBundle(UInt())
+            val rs2Addr = new InOutBundle(UInt())
                         
-            val memInputData = new InOutBundle(SInt())
-            
             val imm = new InOutBundle(SInt())
             val pc = new InOutBundle(UInt())
 
@@ -21,13 +21,13 @@ class IDBarrier extends MultiIOModule {
         }
     )
 
-    inOutLatch(io.operand1, io.stall)
-    inOutLatch(io.operand2, io.stall)
+    inOutLatch(io.rs1Data, io.stall)
+    inOutLatch(io.rs1Addr, io.stall)
+    inOutLatch(io.rs2Data, io.stall)
+    inOutLatch(io.rs2Addr, io.stall)
     
     inOutLatch(io.imm, io.stall)
     inOutLatch(io.pc, io.stall)
-    
-    inOutLatch(io.memInputData, io.stall)
     
     val controlSignalBarrier = Module(new ControlSignalBarrier())
     controlSignalBarrier.io.stall := io.stall

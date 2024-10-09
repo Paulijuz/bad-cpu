@@ -5,6 +5,8 @@ import chisel3._
 import Latch._
 
 class ControlSignalsBundle extends Bundle {
+    val op1Select = UInt()
+    val op2Select = UInt()
     val aluOp = UInt(4.W)
 
     val branchType = UInt()
@@ -27,6 +29,8 @@ class ControlSignalBarrier extends Module {
 
     // TODO: Refactor
 
+    io.controlSignals.out.op1Select := latch(io.controlSignals.in.op1Select, io.stall, io.flush)
+    io.controlSignals.out.op2Select := latch(io.controlSignals.in.op2Select, io.stall, io.flush)
     io.controlSignals.out.aluOp := latch(io.controlSignals.in.aluOp, io.stall, io.flush)
 
     io.controlSignals.out.branchType := latch(io.controlSignals.in.branchType, io.stall, io.flush)

@@ -10,7 +10,7 @@ class EXBarrier extends MultiIOModule {
 
             val aluResult = new InOutBundle(SInt())
 
-            val memInputData = new InOutBundle(SInt())
+            val memWriteData = new InOutBundle(SInt())
 
             val branchAddr = new InOutBundle(UInt())
             val branchTaken = new InOutBundle(Bool())
@@ -23,7 +23,7 @@ class EXBarrier extends MultiIOModule {
 
     inOutLatch(io.aluResult, false.B, io.flush)
 
-    inOutLatch(io.memInputData, false.B, io.flush)
+    inOutLatch(io.memWriteData, false.B, io.flush)
 
     inOutLatch(io.branchAddr, false.B, io.flush)
     inOutLatch(io.branchTaken, false.B, io.flush)

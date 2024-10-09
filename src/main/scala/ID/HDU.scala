@@ -7,23 +7,22 @@ class HDU extends Module {
   val io = IO(new Bundle {
     val idRs1 = Input(UInt())
     val idRs2 = Input(UInt())
-
+    
+    val aluResWriteBack = Input(Bool())
     val exRd  = Input(UInt())
-    val memRd = Input(UInt())
-    val wbRd  = Input(UInt())
+    // val memRd = Input(UInt())
+    // val wbRd  = Input(UInt())
 
-    val rs1Raw = Output(Bool())
-    val rs2Raw = Output(Bool())
+    val stall = Output(Bool())
   })
 
-  val rdSignals = Vec(io.exRd, io.memRd, io.wbRd)
+  // val rdSignals = Vec(io.exRd, io.memRd, io.wbRd)
 
-  // This function return true if the the given register Rs
-  // will be written to by a instruction further down the line.
-  def isRawHazard(rs: UInt): Bool = {
-    rs != 0.U && rdSignals.exists(rd => rs === rd)
-  }
+  // // This function return true if the the given register Rs
+  // // will be written to by a instruction further down the line.
+  // def isRawHazard(rs: UInt): Bool = {
+  //   rs != 0.U && rdSignals.exists(rd => rs === rd)
+  // }
 
-  io.rs1Raw := isRawHazard(io.idRs1)
-  io.rs2Raw := isRawHazard(io.idRs2)
+  io.stall := (io.idRs1 === io.exRd || io.idRs2 === io.exRd) && !io.aluResWriteBack
 }
