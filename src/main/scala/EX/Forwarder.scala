@@ -21,9 +21,9 @@ class Forwarder extends Module {
   })
   
   
-    // We also include the write back register address delayed by one cycle
-    // to compensate for the fact that updating a register takes one cycle.
-  val prevMemRd    = RegNext(io.memRd)
+  // We also include the write back register address delayed by one cycle
+  // to compensate for the fact that updating a register takes one cycle.
+  val prevMemRd   = RegNext(io.memRd)
   val prevMemData = RegNext(io.memData)
 
   val writeBackAddresses = Vec(io.exRd, io.memRd, prevMemRd)
@@ -34,9 +34,17 @@ class Forwarder extends Module {
     prevMemRd -> (prevMemData),
   )
 
-  io.rs1ForwardAvailable := io.rs1 != 0.U && writeBackAddresses.contains(io.rs1)
-  io.rs1ForwardData      := MuxLookup(io.rs1, 0xBEEF01.S, forwardDataLookup)
+  def forwardAvailable(rs: UInt): Bool = {
+    rs != 0.U && writeBackAddresses.contains(rs)
+  }
 
-  io.rs2ForwardAvailable := io.rs2 != 0.U && writeBackAddresses.contains(io.rs2)
-  io.rs2ForwardData      := MuxLookup(io.rs2, 0xBEEF02.S, forwardDataLookup)
+  def getForwardData(rs: UInt): SInt = {
+    MuxLookup(rs, 0xBEEF01.S, forwardDataLookup)
+  }
+
+  io.rs1ForwardAvailable := forwardAvailable(io.rs1)
+  io.rs1ForwardData      := getForwardData(io.rs1)
+
+  io.rs2ForwardAvailable := forwardAvailable(io.rs2)
+  io.rs2ForwardData      := getForwardData(io.rs2)
 }

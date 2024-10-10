@@ -6,7 +6,6 @@ import chisel3.util.MuxLookup
 class Brancher() extends Module {
     val io = IO(new Bundle {
         val zero = Input(Bool())
-        val negative = Input(Bool())
         val branchType = Input(UInt())
 
         val branchTaken = Output(Bool())

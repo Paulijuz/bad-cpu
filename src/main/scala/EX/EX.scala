@@ -59,16 +59,16 @@ class Execute extends MultiIOModule {
   val op2 = MuxLookup(io.op2Select, 0x42.S, operand2Lookup)
 
   val aluOpMap = Array(
-    ADD  -> (op1 + op2),
-    SUB  -> (op1 - op2),
-    OR   -> (op1 | op2),
-    AND  -> (op1 & op2),
-    XOR  -> (op1 ^ op2),
-    SLT  -> (op1 < op2).zext(),
-    SLTU -> (op1.asUInt() < op2.asUInt()).zext(),
-    SRA  -> (op1 >> op2(4, 0)),
-    SRL  -> (op1.asUInt() >> op2(4, 0)).asSInt(),
-    SLL  -> (op1 << op2(4, 0)),
+    ADD    -> (op1 + op2),
+    SUB    -> (op1 - op2),
+    OR     -> (op1 | op2),
+    AND    -> (op1 & op2),
+    XOR    -> (op1 ^ op2),
+    SLT    -> (op1 < op2).zext(),
+    SLTU   -> (op1.asUInt() < op2.asUInt()).zext(),
+    SRA    -> (op1 >> op2(4, 0)),
+    SRL    -> (op1.asUInt() >> op2(4, 0)).asSInt(),
+    SLL    -> (op1 << op2(4, 0)),
     COPY_A -> (op1),
     COPY_B -> (op2),
   )
@@ -78,7 +78,6 @@ class Execute extends MultiIOModule {
   io.branchTaken := io.jump || io.branch && brancher.branchTaken
 
   brancher.branchType := io.branchType
-  brancher.negative := io.aluResult < 0.S
   brancher.zero := io.aluResult === 0.S
   io.branchAddr := Mux(io.jump, io.aluResult.asUInt(), (io.imm + io.PC.asSInt()).asUInt())
 
