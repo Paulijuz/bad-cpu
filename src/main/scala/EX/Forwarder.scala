@@ -26,7 +26,7 @@ class Forwarder extends Module {
   val prevMemRd   = RegNext(io.memRd)
   val prevMemData = RegNext(io.memData)
 
-  val writeBackAddresses = Vec(io.exRd, io.memRd, prevMemRd)
+  val writeBackAddresses = VecInit(io.exRd, io.memRd, prevMemRd)
 
   val forwardDataLookup = Array(
     io.exRd   -> (io.exData),
@@ -35,7 +35,7 @@ class Forwarder extends Module {
   )
 
   def forwardAvailable(rs: UInt): Bool = {
-    rs != 0.U && writeBackAddresses.contains(rs)
+    rs =/= 0.U && writeBackAddresses.contains(rs)
   }
 
   def getForwardData(rs: UInt): SInt = {

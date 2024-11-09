@@ -16,6 +16,7 @@ class IDBarrier extends MultiIOModule {
                         
             val imm = new InOutBundle(SInt())
             val pc = new InOutBundle(UInt())
+            val predictedTarget = new InOutBundle(UInt())
 
             val controlSignals = new InOutBundle(new ControlSignalsBundle())
         }
@@ -28,6 +29,7 @@ class IDBarrier extends MultiIOModule {
     
     inOutLatch(io.imm, io.stall)
     inOutLatch(io.pc, io.stall)
+    inOutLatch(io.predictedTarget, io.stall)
     
     val controlSignalBarrier = Module(new ControlSignalBarrier())
     controlSignalBarrier.io.stall := io.stall

@@ -24,5 +24,10 @@ class HDU extends Module {
   //   rs != 0.U && rdSignals.exists(rd => rs === rd)
   // }
 
+  // The only time a stall is required is when there is a RAW hazard between
+  // the next instruction and the previous instruction, where the previous instruciton
+  // is either a memory instruction or a jump instruciton. This is because those two
+  // instruction types won't have their wb data available in the EX stage, thus we have to
+  // wait for them to eneter the mem stage before we can continue.
   io.stall := (io.idRs1 === io.exRd || io.idRs2 === io.exRd) && !io.aluResWriteBack
 }

@@ -12,8 +12,8 @@ class EXBarrier extends MultiIOModule {
 
             val memWriteData = new InOutBundle(SInt())
 
-            val branchAddr = new InOutBundle(UInt())
-            val branchTaken = new InOutBundle(Bool())
+            val correctTarget = new InOutBundle(UInt())
+            val misprediction = new InOutBundle(Bool())
 
             val pc = new InOutBundle(UInt())
 
@@ -25,8 +25,8 @@ class EXBarrier extends MultiIOModule {
 
     inOutLatch(io.memWriteData, false.B, io.flush)
 
-    inOutLatch(io.branchAddr, false.B, io.flush)
-    inOutLatch(io.branchTaken, false.B, io.flush)
+    inOutLatch(io.correctTarget, false.B, io.flush)
+    inOutLatch(io.misprediction, false.B, io.flush)
 
     inOutLatch(io.pc, false.B, io.flush)
 

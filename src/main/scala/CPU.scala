@@ -57,39 +57,41 @@ class CPU extends MultiIOModule {
 
   IF.io.stall := ID.io.stall
 
-  IF.io.branchTaken := EXBarrier.branchTaken.out
-  IF.io.branchAddr := EXBarrier.branchAddr.out
+  IF.io.misprediction := EXBarrier.misprediction.out
+  IF.io.correctTarget := EXBarrier.correctTarget.out
+  IF.io.branchAddress := EXBarrier.pc.out
 
 
   IFBarrier.stall := ID.io.stall
-  IFBarrier.flush := EXBarrier.branchTaken.out
 
-  IFBarrier.pc.in := IF.io.PC
-  IFBarrier.instruction.in := IF.io.instruction
+  IFBarrier.pc.in              := IF.io.PC
+  IFBarrier.instruction.in     := IF.io.instruction
+  IFBarrier.predictedTarget.in := IF.io.PC
 
   ////////
   // ID //
   ////////
 
-  ID.io.PC := IFBarrier.pc.out
+  ID.io.PC          := IFBarrier.pc.out
   ID.io.instruction := IFBarrier.instruction.out
 
-  ID.io.writeEnable := MEMBarrier.controlSignals.out.regWriteEnable
-  ID.io.writeData := MEMBarrier.data.out
+  ID.io.writeEnable  := MEMBarrier.controlSignals.out.regWriteEnable
+  ID.io.writeData    := MEMBarrier.data.out
   ID.io.writeAddress := MEMBarrier.controlSignals.out.regWriteAddress
 
   ID.io.exRd            := IDBarrier.controlSignals.out.regWriteAddress
   ID.io.aluResWriteBack := !IDBarrier.controlSignals.out.jump && !IDBarrier.controlSignals.out.memReadEnable
 
   IDBarrier.stall := ID.io.stall
-  IDBarrier.flush := ID.io.stall || EXBarrier.branchTaken.out
+  IDBarrier.flush := ID.io.stall || EXBarrier.misprediction.out
 
-  IDBarrier.rs1Data.in := ID.io.rs1Data
-  IDBarrier.rs1Addr.in := ID.io.rs1Addr
-  IDBarrier.rs2Data.in := ID.io.rs2Data
-  IDBarrier.rs2Addr.in := ID.io.rs2Addr
-  IDBarrier.pc.in := IFBarrier.pc.out
-  IDBarrier.imm.in := ID.io.imm
+  IDBarrier.rs1Data.in         := ID.io.rs1Data
+  IDBarrier.rs1Addr.in         := ID.io.rs1Addr
+  IDBarrier.rs2Data.in         := ID.io.rs2Data
+  IDBarrier.rs2Addr.in         := ID.io.rs2Addr
+  IDBarrier.pc.in              := IFBarrier.pc.out
+  IDBarrier.predictedTarget.in := IFBarrier.predictedTarget.out
+  IDBarrier.imm.in             := ID.io.imm
   
   IDBarrier.controlSignals.in <> ID.io.controlSignals
 
@@ -99,31 +101,32 @@ class CPU extends MultiIOModule {
 
   EX.io.op1Select := IDBarrier.controlSignals.out.op1Select
   EX.io.op2Select := IDBarrier.controlSignals.out.op2Select
-  EX.io.aluOp := IDBarrier.controlSignals.out.aluOp
+  EX.io.aluOp     := IDBarrier.controlSignals.out.aluOp
   
-  EX.io.PC := IDBarrier.pc.out
-  EX.io.imm := IDBarrier.imm.out
-  EX.io.rs1Addr := IDBarrier.rs1Addr.out
-  EX.io.rs1Data := IDBarrier.rs1Data.out
-  EX.io.rs2Addr := IDBarrier.rs2Addr.out
-  EX.io.rs2Data := IDBarrier.rs2Data.out
+  EX.io.PC              := IDBarrier.pc.out
+  EX.io.predictedTarget := IDBarrier.predictedTarget.out
+  EX.io.imm             := IDBarrier.imm.out
+  EX.io.rs1Addr         := IDBarrier.rs1Addr.out
+  EX.io.rs1Data         := IDBarrier.rs1Data.out
+  EX.io.rs2Addr         := IDBarrier.rs2Addr.out
+  EX.io.rs2Data         := IDBarrier.rs2Data.out
 
   EX.io.branchType := IDBarrier.controlSignals.out.branchType
-  EX.io.branch := IDBarrier.controlSignals.out.branch
-  EX.io.jump := IDBarrier.controlSignals.out.jump
+  EX.io.branch     := IDBarrier.controlSignals.out.branch
+  EX.io.jump       := IDBarrier.controlSignals.out.jump
 
-  EX.io.exRd  := EXBarrier.controlSignals.out.regWriteAddress
-  EX.io.exData := EXBarrier.aluResult.out
-  EX.io.memRd := MEMBarrier.controlSignals.out.regWriteAddress
+  EX.io.exRd    := EXBarrier.controlSignals.out.regWriteAddress
+  EX.io.exData  := EXBarrier.aluResult.out
+  EX.io.memRd   := MEMBarrier.controlSignals.out.regWriteAddress
   EX.io.memData := MEMBarrier.data.out
   
-  EXBarrier.flush := EXBarrier.branchTaken.out
+  EXBarrier.flush := EXBarrier.misprediction.out
   
-  EXBarrier.aluResult.in := EX.io.aluResult
-  EXBarrier.memWriteData.in := EX.io.memWriteData
-  EXBarrier.branchAddr.in := EX.io.branchAddr
-  EXBarrier.branchTaken.in := EX.io.branchTaken
-  EXBarrier.pc.in := IDBarrier.pc.out
+  EXBarrier.aluResult.in     := EX.io.aluResult
+  EXBarrier.memWriteData.in  := EX.io.memWriteData
+  EXBarrier.correctTarget.in := EX.io.correctTarget
+  EXBarrier.misprediction.in := EX.io.misprediction
+  EXBarrier.pc.in            := IDBarrier.pc.out
 
   EXBarrier.controlSignals.in <> IDBarrier.controlSignals.out
 
@@ -131,12 +134,12 @@ class CPU extends MultiIOModule {
   // MEM //
   /////////
 
-  MEM.io.ALURes := EXBarrier.aluResult.out
-  MEM.io.writeData := EXBarrier.memWriteData.out
+  MEM.io.ALURes      := EXBarrier.aluResult.out
+  MEM.io.writeData   := EXBarrier.memWriteData.out
   MEM.io.writeEnable := EXBarrier.controlSignals.out.memWriteEnable
-  MEM.io.readEnable := EXBarrier.controlSignals.out.memReadEnable
-  MEM.io.PC := EXBarrier.pc.out
-  MEM.io.jump := EXBarrier.controlSignals.out.jump
+  MEM.io.readEnable  := EXBarrier.controlSignals.out.memReadEnable
+  MEM.io.PC          := EXBarrier.pc.out
+  MEM.io.jump        := EXBarrier.controlSignals.out.jump
   
 
   MEMBarrier.data.in := MEM.io.data

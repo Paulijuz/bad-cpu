@@ -14,6 +14,7 @@ class Execute extends MultiIOModule {
       val aluOp = Input(UInt(4.W))
 
       val PC = Input(UInt())
+      val predictedTarget = Input(UInt())
       val imm = Input(SInt())
 
       val rs1Addr = Input(UInt())
@@ -31,9 +32,9 @@ class Execute extends MultiIOModule {
       val branch = Input(Bool())
       val jump = Input(Bool())
 
-      val aluResult = Output(SInt())
-      val branchTaken = Output(Bool())
-      val branchAddr = Output(UInt())
+      val aluResult     = Output(SInt())
+      val misprediction = Output(Bool())
+      val correctTarget = Output(UInt())
 
       val memWriteData = Output(SInt())
     }
@@ -73,14 +74,19 @@ class Execute extends MultiIOModule {
     COPY_B -> (op2),
   )
   
+  val isBranchInstruction = io.jump || io.branch
+  val branchTaken         = io.jump || io.branch && brancher.branchTaken
+  val branchTarget        = Mux(io.jump, io.aluResult.asUInt(), (io.imm + io.PC.asSInt()).asUInt())
+  val correctTarget       = Mux(branchTaken, branchTarget, io.PC + 4.U)
+
   io.aluResult := MuxLookup(io.aluOp, 0x42069.S(32.W), aluOpMap)
   io.memWriteData := rs2
-  io.branchTaken := io.jump || io.branch && brancher.branchTaken
-
+  io.misprediction := isBranchInstruction && io.predictedTarget =/= correctTarget
+  io.correctTarget := correctTarget
+  
   brancher.branchType := io.branchType
   brancher.zero := io.aluResult === 0.S
-  io.branchAddr := Mux(io.jump, io.aluResult.asUInt(), (io.imm + io.PC.asSInt()).asUInt())
-
+  
   forwarder.rs1 := io.rs1Addr
   forwarder.rs2 := io.rs2Addr
   
