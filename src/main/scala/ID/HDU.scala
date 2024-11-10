@@ -8,7 +8,8 @@ class HDU extends Module {
     val idRs1 = Input(UInt())
     val idRs2 = Input(UInt())
     
-    val aluResWriteBack = Input(Bool())
+    val exMemInst = Input(Bool())
+    val exJumpInst = Input(Bool())
     val exRd  = Input(UInt())
     // val memRd = Input(UInt())
     // val wbRd  = Input(UInt())
@@ -29,5 +30,5 @@ class HDU extends Module {
   // is either a memory instruction or a jump instruciton. This is because those two
   // instruction types won't have their wb data available in the EX stage, thus we have to
   // wait for them to eneter the mem stage before we can continue.
-  io.stall := (io.idRs1 === io.exRd || io.idRs2 === io.exRd) && !io.aluResWriteBack
+  io.stall := io.exRd =/= 0.U && (io.idRs1 === io.exRd || io.idRs2 === io.exRd) && (io.exMemInst || io.exJumpInst)
 }

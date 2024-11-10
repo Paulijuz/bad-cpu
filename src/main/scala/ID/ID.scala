@@ -27,7 +27,8 @@ class InstructionDecode extends MultiIOModule {
       val writeAddress = Input(UInt())
       val writeData    = Input(SInt())
 
-      val aluResWriteBack = Input(Bool())
+      val exJumpInst = Input(Bool())
+      val exMemInst  = Input(Bool())
       val exRd       = Input(UInt())
 
       val rs1Data = Output(UInt())
@@ -114,7 +115,8 @@ class InstructionDecode extends MultiIOModule {
   hdu.idRs1 := rs1Address
   hdu.idRs2 := rs2Address
 
-  hdu.aluResWriteBack := io.aluResWriteBack
+  hdu.exJumpInst := io.exJumpInst
+  hdu.exMemInst := io.exMemInst
   hdu.exRd  := io.exRd
 
   io.stall := hdu.stall

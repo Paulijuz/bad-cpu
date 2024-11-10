@@ -55,14 +55,14 @@ class CPU extends MultiIOModule {
   // IF //
   ////////
 
-  IF.io.stall := ID.io.stall
+  IF.io.stall := ID.io.stall && !EXBarrier.misprediction.out
 
   IF.io.misprediction := EXBarrier.misprediction.out
   IF.io.correctTarget := EXBarrier.correctTarget.out
   IF.io.branchAddress := EXBarrier.pc.out
 
 
-  IFBarrier.stall := ID.io.stall
+  IFBarrier.stall := ID.io.stall && !EXBarrier.misprediction.out
 
   IFBarrier.pc.in              := IF.io.PC
   IFBarrier.instruction.in     := IF.io.instruction
@@ -79,10 +79,11 @@ class CPU extends MultiIOModule {
   ID.io.writeData    := MEMBarrier.data.out
   ID.io.writeAddress := MEMBarrier.controlSignals.out.regWriteAddress
 
-  ID.io.exRd            := IDBarrier.controlSignals.out.regWriteAddress
-  ID.io.aluResWriteBack := !IDBarrier.controlSignals.out.jump && !IDBarrier.controlSignals.out.memReadEnable
+  ID.io.exRd       := IDBarrier.controlSignals.out.regWriteAddress
+  ID.io.exMemInst  := IDBarrier.controlSignals.out.memReadEnable
+  ID.io.exJumpInst := IDBarrier.controlSignals.out.jump
 
-  IDBarrier.stall := ID.io.stall
+  IDBarrier.stall := ID.io.stall && !EXBarrier.misprediction.out
   IDBarrier.flush := ID.io.stall || EXBarrier.misprediction.out
 
   IDBarrier.rs1Data.in         := ID.io.rs1Data

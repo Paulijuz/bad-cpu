@@ -48,7 +48,7 @@ class InstructionFetch extends MultiIOModule {
   def isBranchInstruction(instruction: Instruction): Bool = {
     import lookup._
 
-    val branchInstructions = Array(BEQ, BNE, BLT, BGE, BLTU, BGEU)
+    val branchInstructions = Array(BEQ, BNE, BLT, BGE, BLTU, BGEU, JAL, JALR)
     branchInstructions.map(bitpat => instruction.asUInt === bitpat).reduce((l, r) => l || r)
   }
 
@@ -75,21 +75,25 @@ class InstructionFetch extends MultiIOModule {
     ) // When we stall use the previous PC.
   )
 
+  when(io.misprediction) {
+    pcReg := io.misprediction
+  }
+
   // Since IMEM adds a one cycle delay for the instruction we need to do some wierd
   // shenanigangs to make sure that the correct instruction is held when we stall.
   //
   // Only update the PC when we're not stalled.
   // Except also when a branch is mispredicted so we update the branch.
-  when (!io.stall || io.misprediction) {
+  when (!io.stall) {
     pcReg := pc + 4.U
-    prevPcReg := pcReg // Store the previous PC so that when we stall we can use that PC instead.
+    prevPcReg := pc // Store the previous PC so that when we stall we can use that PC instead.
   }
 
   IMEM.io.instructionAddress := pc
   io.PC := pc
 
   // BTB
-  btb.io.prediction.instructionAddress := prevPcReg
+  btb.io.prediction.instructionAddress := pc
   btb.io.update.writeEnable := io.misprediction
   btb.io.update.targetAddress := io.correctTarget
   btb.io.update.instructionAddress := io.branchAddress

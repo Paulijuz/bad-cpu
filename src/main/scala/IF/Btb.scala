@@ -17,16 +17,16 @@ class Btb extends Module {
         })
     })
 
-    val indexBits  = 6
+    val indexBits  = 12
     val bufferSize = pow(2, indexBits).toInt
 
-    val tagsBuffer   = RegInit(VecInit(Seq.fill(bufferSize)(0.U((32-indexBits).W))))
-    val targetBuffer = RegInit(VecInit(Seq.fill(bufferSize)(0.U(32.W))))
+    val tagsBuffer    = SyncReadMem(bufferSize, UInt((32-indexBits).W))
+    val targetBuffer  = SyncReadMem(bufferSize, UInt(32.W))
   
     val tag   = io.prediction.instructionAddress >> indexBits
     val index = io.prediction.instructionAddress % bufferSize.U
 
-    val tagsMatch              = tagsBuffer(index) === tag
+    val tagsMatch              = tagsBuffer(index) === RegNext(tag)
     val predictedTargetAddress = targetBuffer(index)
     
     io.prediction.valid         := tagsMatch
