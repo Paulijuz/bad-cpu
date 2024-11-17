@@ -28,7 +28,7 @@ name := "FiveStage"
 
 version := "2.0.0"
 
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.9" // VS Code intellisense would not work for me unlesss i used a newer version of scala
 
 crossScalaVersions := Seq("2.11.12", "2.12.4")
 
