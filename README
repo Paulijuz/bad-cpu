@@ -4,6 +4,8 @@ The BTB is located in the file src/main/scala/IF/Btb.scala and is used by the IF
 
 When it comes to branch mispredictions, not much had to be changed for the BTB since we already handled branch mispredictions before. The only difference now is that a branch prediction can be something other than not taken, so additional logic is required in the EX stage to detect if a misprediction happened. Before the BTB, we could guarantee that a misprediction happened if the branch was taken since we knew the IF always assumed not taken. However, now we need to know which target address was predicted, and then compare that with the branch result. This was implemented by passing the predictedBranch alongside the PC from the IF stage down the pipeline. A misprediction is then determined by checking if the calculated branch target is different from the predicted branch target in the EX stage.
 
+Here are the performance results for branchProfiling.s:
+
 Before BTB: 9679 cycles
 
 After BTB:
