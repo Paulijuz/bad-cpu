@@ -1,0 +1,21 @@
+I created a simple BTB. In practice it works as a 1 bit branch predictor, but with the benifit that the IF stage doesn't have to calculate the target location of the branch. 
+
+The BTB is located in the file src/main/scala/IF/Btb.scala and is used byt the IF stage. It works by taking in the PC and returning the target branch address and if it is a hit (valid). IF the returned branch target is not valid or the instruction is not a branch the branch target is ignored and the PC continues on as normal (i.e. not taken, i.e. PC + 4). If it is valid and the instruction is a branch instruction the PC changes to the branch target. The BTB uses two "SynReadMem"s for storing tags and target adddresses, so one interessting implementation detail was that since it takes one cycle to read the BTB we have to fetch the target address before we have finnished fetching the instruction. So the BTB and IMEM are fetched in parallel, both taking one cycle to complete. This means that we only check if an instruction is a branch instruction after we have fetched the branch target from the BTB.
+
+When it comes to branch mispredictions, not much had to be changed for the BTB since we already handled branch mispredictions before. The only difference now is that a branch predictions can be something other than not taken, so additional logic is required in the EX stage to detect if a misprediction happend. Before the BTB, we could guarantee that a misprediction happend if the branch was taken since we knew the IF always assumed not taken. However, now we need to know which target address was predicted, and then compare that with the branch result. This was implemented by passing the predictedBranch alongside the PC from the IF stage down the pipline. A misprediction is then determiend by checking if the calculated branch target is different from the predicted branch target in the EX stage. 
+
+Before BTB: 9679 cycles
+
+After BTB:
+
+Index bits | Cycles
+-----------+-------
+         0 |   9671
+         2 |   9671
+         4 |   8061
+         6 |   7593
+         8 |   7303
+        10 |   7298
+        12 |   7298
+
+Improvement (No BTB vs BTB with 10 index bits): 25% reduction in cycles

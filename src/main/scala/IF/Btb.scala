@@ -17,7 +17,7 @@ class Btb extends Module {
         })
     })
 
-    val indexBits  = 12
+    val indexBits  = 10
     val bufferSize = pow(2, indexBits).toInt
 
     val tagsBuffer    = SyncReadMem(bufferSize, UInt((32-indexBits).W))

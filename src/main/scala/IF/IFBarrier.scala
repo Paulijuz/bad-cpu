@@ -15,12 +15,14 @@ class IFBarrier extends MultiIOModule {
     )
 
     inOutLatch(io.pc, io.stall)
-    io.predictedTarget.out := io.predictedTarget.in
-
-    // Since the instruction is already delayed by one cycle from reading the IMEM
-    // we don't have to add a once cycle delay with a latch in the barrier.
-    // This also means that it's the IF stage's repsonsibility to stall the instruction
-    // since the barrier doesn't have a register in which it can hold the instruction 
-    // during a stall.
+    
+    // Since the instruction and predicted target is already delayed by one cycle from
+    // reading the IMEM and targetBuffer/tagBuffer we don't have to add an additional
+    // once cycle delay with a latch in the barrier.
+    //
+    // This also means that it's the IF stage's repsonsibility to stall the 
+    // instruction/predicted target since the barrier doesn't have a register in which
+    // it can hold the instruction/predicted target during a stall.
     io.instruction.out := io.instruction.in
+    io.predictedTarget.out := io.predictedTarget.in
 }

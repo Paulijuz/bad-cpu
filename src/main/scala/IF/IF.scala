@@ -45,58 +45,55 @@ class InstructionFetch extends MultiIOModule {
   testHarness.PC := IMEM.testHarness.requestedAddress
   
   
+  // Function for checking wheter an instruction is a branch (or jump) instruction or not
   def isBranchInstruction(instruction: Instruction): Bool = {
     import lookup._
 
     val branchInstructions = Array(BEQ, BNE, BLT, BGE, BLTU, BGEU, JAL, JALR)
+    // Return true as long as there is one match (OR the entire list)
     branchInstructions.map(bitpat => instruction.asUInt === bitpat).reduce((l, r) => l || r)
   }
 
   val instruction = WireInit(new Instruction, Instruction.NOP)
   instruction := IMEM.io.instruction.asTypeOf(new Instruction)
 
-  // Since the instruction memory is delayed by one cycle and it'll take one cycle to update the PC register after a branch
-  // we'll have to give out NOP for the next two cycles after a branch.
+  // Since the instruction memory is delayed by one cycle we have to give a NOP instruction
+  // during a branch since the correct instruction won't be available immediately.
   io.instruction := Mux(io.misprediction, Instruction.NOP, instruction)
   
-  val predictionValid = isBranchInstruction(instruction) && btb.io.prediction.valid
   val pc = Wire(UInt()) // Create a wire for PC to avoid having to rewrite the MUX bellow
+  
+  // Only accept target addresses from the BTB if it's a hit and the instruction is a branch instruction
+  val predictionValid = isBranchInstruction(instruction) && btb.io.prediction.valid
+
   pc := Mux(
-    io.misprediction,
-    io.correctTarget,
+    io.misprediction, // If there has been a branch misprediction
+    io.correctTarget, // set pc to the correct address.
     Mux(
-      io.stall, 
-      prevPcReg,
-      Mux(
-        predictionValid, 
-        btb.io.prediction.targetAddress, 
-        pcReg,
+      io.stall, // If we are stalling...
+      prevPcReg, // use the previous PC so that IMEM returns the same instruction.
+      Mux( // Otherwise, ...
+        predictionValid, // if the BTB prediction is valid...
+        btb.io.prediction.targetAddress, // use the predicted target.
+        pcReg, // Otherwise, use the PC register (PC + 4).
       )
-    ) // When we stall use the previous PC.
+    )
   )
 
-  when(io.misprediction) {
-    pcReg := io.misprediction
-  }
-
-  // Since IMEM adds a one cycle delay for the instruction we need to do some wierd
-  // shenanigangs to make sure that the correct instruction is held when we stall.
-  //
-  // Only update the PC when we're not stalled.
-  // Except also when a branch is mispredicted so we update the branch.
+  // Only update the PC register and previous PC register when we're not stalling.
   when (!io.stall) {
     pcReg := pc + 4.U
     prevPcReg := pc // Store the previous PC so that when we stall we can use that PC instead.
   }
 
-  IMEM.io.instructionAddress := pc
-  io.PC := pc
-
   // BTB
   btb.io.prediction.instructionAddress := pc
-  btb.io.update.writeEnable := io.misprediction
-  btb.io.update.targetAddress := io.correctTarget
-  btb.io.update.instructionAddress := io.branchAddress
+  btb.io.update.writeEnable            := io.misprediction
+  btb.io.update.targetAddress          := io.correctTarget
+  btb.io.update.instructionAddress     := io.branchAddress
+
+  IMEM.io.instructionAddress := pc
+  io.PC := pc
 
   /**
     * Setup. You should not change this code.
